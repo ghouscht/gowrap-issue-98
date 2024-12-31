@@ -1,0 +1,42 @@
+{{.Import}}
+
+
+{{ $interfacePackageName := mustFirst (splitList "." .Interface.Type) }}
+{{ $decorator := (or .Vars.DecoratorName (printf "%sWithPrometheus" .Interface.Name)) }}
+{{ $interfaceGenericParams := .Interface.Generics.Params}}
+
+// {{$decorator}}{{.Interface.Generics.Types}} implements {{.Interface.Type}}{{.Interface.Generics.Types}}
+// interface with all methods wrapped with Prometheus metrics.
+type {{$decorator}}{{.Interface.Generics.Types}} struct {
+	base {{.Interface.Type}}{{.Interface.Generics.Params}}
+	metric prometheus.ObserverVec
+	instanceName string
+}
+
+// New{{.Interface.Name}}WithPrometheus{{.Interface.Generics.Types}} returns an
+// instance of the {{.Interface.Type}}{{.Interface.Generics.Types}} decorated
+// with prometheus summary metric.
+func New{{$decorator}}{{.Interface.Generics.Types}}(base {{.Interface.Type}}{{.Interface.Generics.Params}}, metric prometheus.ObserverVec, instanceName string) {{$decorator}}{{.Interface.Generics.Params}} {
+	return {{$decorator}}{{.Interface.Generics.Params}} {
+		base: base,
+		metric: metric,
+		instanceName: instanceName,
+	}
+}
+
+{{range $method := .Interface.Methods}}
+	// {{$method.Name}} implements {{$.Interface.Type}}{{$interfaceGenericParams}}.
+	func (_d {{$decorator}}{{$interfaceGenericParams}}) {{$method.Declaration}} {
+			_since := time.Now()
+			defer func() {
+				result := "ok"
+				{{- if $method.ReturnsError}}
+					if err != nil {
+						result = "error"
+					}
+				{{end}}
+				_d.metric.WithLabelValues(_d.instanceName, "{{$method.Name}}", result).Observe(time.Since(_since).Seconds())
+			}()
+		{{$method.Pass "_d.base."}}
+	}
+{{end}}
