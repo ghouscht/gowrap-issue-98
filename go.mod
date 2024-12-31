@@ -2,7 +2,10 @@ module example.com/gowrap/issue/98
 
 go 1.23
 
-require github.com/prometheus/client_golang v1.20.5
+require (
+	github.com/hexdigest/gowrap v1.4.1
+	github.com/prometheus/client_golang v1.20.5
+)
 
 require (
 	github.com/Masterminds/goutils v1.1.1 // indirect
@@ -11,7 +14,6 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/hexdigest/gowrap v1.4.1 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/imdario/mergo v0.3.12 // indirect
 	github.com/mitchellh/copystructure v1.1.2 // indirect
